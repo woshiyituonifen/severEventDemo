@@ -106,7 +106,7 @@ conn_eventcb(struct bufferevent *bev, short events, void *user_data)
     if (events & BEV_EVENT_EOF) {
         printf("Connection closed.\n");
     } else if (events & BEV_EVENT_ERROR) {
-        printf("Got an error on the connection: %s\n",
+//        printf("Got an error on the connection: %s\n",
 //               strerror(errno));/*XXX win32*/
     }
     /* None of the other events can happen here, since we haven't enabled
