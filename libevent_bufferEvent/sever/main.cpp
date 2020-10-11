@@ -14,12 +14,19 @@
 
 
 static  const int PORT = 8002;
+static const char MESSAGE[] = "Hello, World!\n";
 
 //static void listen_cb(struct evconnlistener *, evutil_socket_t ,struct sockaddr *,int socklen,void *);
 static void
 listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
             struct sockaddr *sa, int socklen, void *user_data);
 static  void signal_cb(evutil_socket_t,short ,void *);
+static void conn_readcb(struct bufferevent *bev, void *user_data);
+static void
+conn_writecb(struct bufferevent *bev, void *user_data);
+
+static void
+conn_eventcb(struct bufferevent *bev, short events, void *user_data);
 int main() {
     // 创建event_base根节点
     struct event_base *base = event_base_new();
@@ -33,7 +40,7 @@ int main() {
     sin.sin_family = AF_INET;
     sin.sin_port = htons(PORT);
 
-    struct evconnlistener *lis =  evconnlistener_new_bind(base,listen_cb,(void *)base,LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE,-1,(struct sockaddr *)&sin,sizeof(sin));
+    struct evconnlistener *lis =  evconnlistener_new_bind(base,listener_cb,(void *)base,LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE,-1,(struct sockaddr *)&sin,sizeof(sin));
     if (!lis){
         perror("");
         return -1;
@@ -69,7 +76,7 @@ listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
     bufferevent_enable(bev, EV_WRITE | EV_READ);//设置写事件使能
     //bufferevent_disable(bev, EV_READ);//设置读事件非使能
 
-    bufferevent_write(bev, MESSAGE, strlen(MESSAGE));//给cfd发送消息 helloworld
+//    bufferevent_write(bev, MESSAGE, strlen(MESSAGE));//给cfd发送消息 helloworld
 }
 static void conn_readcb(struct bufferevent *bev, void *user_data)
 {
@@ -100,7 +107,7 @@ conn_eventcb(struct bufferevent *bev, short events, void *user_data)
         printf("Connection closed.\n");
     } else if (events & BEV_EVENT_ERROR) {
         printf("Got an error on the connection: %s\n",
-               strerror(errno));/*XXX win32*/
+//               strerror(errno));/*XXX win32*/
     }
     /* None of the other events can happen here, since we haven't enabled
      * timeouts */
