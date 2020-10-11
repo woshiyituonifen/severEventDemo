@@ -15,7 +15,10 @@
 
 static  const int PORT = 8002;
 
-static void listen_cb(struct evconnlistener *, evutil_socket_t ,struct sockaddr *,int socklen,void *);
+//static void listen_cb(struct evconnlistener *, evutil_socket_t ,struct sockaddr *,int socklen,void *);
+static void
+listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
+            struct sockaddr *sa, int socklen, void *user_data);
 static  void signal_cb(evutil_socket_t,short ,void *);
 int main() {
     // 创建event_base根节点
@@ -50,7 +53,7 @@ static void
 listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
             struct sockaddr *sa, int socklen, void *user_data)
 {
-    struct event_base *base = user_data;
+    struct event_base *base = (struct event_base *)user_data;
     struct bufferevent *bev;
 
     //将fd上树
@@ -107,7 +110,7 @@ conn_eventcb(struct bufferevent *bev, short events, void *user_data)
 static void
 signal_cb(evutil_socket_t sig, short events, void *user_data)
 {
-    struct event_base *base = user_data;
+    struct event_base *base = (struct event_base *)user_data;
     struct timeval delay = { 2, 0 };
 
     printf("Caught an interrupt signal; exiting cleanly in two seconds.\n");
