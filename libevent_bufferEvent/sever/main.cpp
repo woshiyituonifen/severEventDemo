@@ -14,6 +14,9 @@
 
 
 static  const int PORT = 8002;
+
+static void listen_cb(struct evconnlistener *, evutil_socket_t ,struct sockaddr *,int socklen,void *);
+static  void signal_cb(evutil_socket_t,short ,void *);
 int main() {
     // 创建event_base根节点
     struct event_base *base = event_base_new();
