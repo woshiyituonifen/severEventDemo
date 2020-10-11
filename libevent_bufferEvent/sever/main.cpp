@@ -39,7 +39,7 @@ int main() {
   struct event *signal_event = evsignal_new(base,SIGINT,signal_cb,(void *)base);
     // 循环监听
     event_base_dispatch(base);
-    evconnlistener_free(signal_event);
+    event_free(signal_event);
     event_base_free(base);
 
 
