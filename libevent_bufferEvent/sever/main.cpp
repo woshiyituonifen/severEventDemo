@@ -36,11 +36,81 @@ int main() {
         return -1;
     }
     // 创建信号触发节点
-    evsignal_new(base,SIGINT,signal_cb,(void *)base);
+  struct event *signal_event = evsignal_new(base,SIGINT,signal_cb,(void *)base);
+    // 循环监听
     event_base_dispatch(base);
-
-
+    evconnlistener_free(signal_event);
+    event_base_free(base);
 
 
     return 0;
+}
+
+static void
+listener_cb(struct evconnlistener *listener, evutil_socket_t fd,
+            struct sockaddr *sa, int socklen, void *user_data)
+{
+    struct event_base *base = user_data;
+    struct bufferevent *bev;
+
+    //将fd上树
+    //新建一个buffervent节点
+    bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
+    if (!bev) {
+        fprintf(stderr, "Error constructing bufferevent!");
+        event_base_loopbreak(base);
+        return;
+    }
+    //设置回调
+    bufferevent_setcb(bev, conn_readcb, conn_writecb, conn_eventcb, NULL);
+    bufferevent_enable(bev, EV_WRITE | EV_READ);//设置写事件使能
+    //bufferevent_disable(bev, EV_READ);//设置读事件非使能
+
+    bufferevent_write(bev, MESSAGE, strlen(MESSAGE));//给cfd发送消息 helloworld
+}
+static void conn_readcb(struct bufferevent *bev, void *user_data)
+{
+    char buf[1500]="";
+    int n = bufferevent_read(bev,buf,sizeof(buf));
+    printf("%s\n",buf);
+    bufferevent_write(bev, buf,n);//给cfd发送消息
+
+
+
+}
+
+static void
+conn_writecb(struct bufferevent *bev, void *user_data)
+{
+    struct evbuffer *output = bufferevent_get_output(bev);//获取缓冲区类型
+    if (evbuffer_get_length(output) == 0) {
+
+        //	printf("flushed answer\n");
+        //	bufferevent_free(bev);//释放节点 自动关闭
+    }
+}
+
+static void
+conn_eventcb(struct bufferevent *bev, short events, void *user_data)
+{
+    if (events & BEV_EVENT_EOF) {
+        printf("Connection closed.\n");
+    } else if (events & BEV_EVENT_ERROR) {
+        printf("Got an error on the connection: %s\n",
+               strerror(errno));/*XXX win32*/
+    }
+    /* None of the other events can happen here, since we haven't enabled
+     * timeouts */
+    bufferevent_free(bev);
+}
+
+static void
+signal_cb(evutil_socket_t sig, short events, void *user_data)
+{
+    struct event_base *base = user_data;
+    struct timeval delay = { 2, 0 };
+
+    printf("Caught an interrupt signal; exiting cleanly in two seconds.\n");
+
+    event_base_loopexit(base, &delay);//退出循环监听
 }
