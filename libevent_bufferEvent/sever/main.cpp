@@ -30,7 +30,7 @@ int main() {
     sin.sin_family = AF_INET;
     sin.sin_port = htons(PORT);
 
-    struct evconnlistener *lis =  evet_connlistener_new_bind(base,listen_cb,(void *)base,LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE,-1,(struct sockaddr *)&sin,sizeof(sin));
+    struct evconnlistener *lis =  evconnlistener_new_bind(base,listen_cb,(void *)base,LEV_OPT_REUSEABLE|LEV_OPT_CLOSE_ON_FREE,-1,(struct sockaddr *)&sin,sizeof(sin));
     if (!lis){
         perror("");
         return -1;
